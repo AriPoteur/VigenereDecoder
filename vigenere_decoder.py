@@ -1,5 +1,5 @@
 from collections import Counter
-from time import time
+
 
 IC_MONO_FR = 0.0746
 IC_POLY = 0.0380
@@ -96,9 +96,7 @@ def key_length_finder(ciphertext_parsed_array):
     average_ic = round(sum(group_ic)/len(group_ic), 4)
     return round(abs(average_ic-IC_MONO_FR), 4)
 
-ic_differences = [key_length_finder(ciphertext_parser(ciphertext_cleaned, i)) for i in range(1,48)]
-key_length = ic_differences.index(min(ic_differences))+1
-print("The possible key length is:", key_length)
+
 
 # print("Execution duration (in sec):", round(end-start, 4))
 
@@ -129,17 +127,30 @@ def frequency_attack(ciphertext_blocks, lang_alphabet_freq):
         max_of_ith_character_of_each_block_freq = max(ciphertext_freq_and_cleaning(i), key=ciphertext_freq_and_cleaning(i).get)
         # print("Letter that occurs the most:",max_of_ith_character_of_each_block_freq)
         decipher_key += ALPHABET[(ALPHABET.index(max_of_ith_character_of_each_block_freq)-ALPHABET.index(max(lang_alphabet_freq, key=lang_alphabet_freq.get)))%26]
-    print("THE KEY:")
+    print("THE KEY:", end="")
     return decipher_key
         # print(dict(sorted(lang_alphabet_freq.items(), key=lambda x : x[1], reverse=True)))
     
-deciphering_key = frequency_attack(parser_in_block(ciphertext_cleaned,key_length),french_alphabet_letter_freq)
 
-
-def deciphering_vigenere(ciphertext_cleaned, deciphering_key):
+def deciphering_vigenere(raw_ciphertext_or_cleaned, deciphering_key):
     plaintext = ""
-    for i in range(len(ciphertext_cleaned)):
-        plaintext += ALPHABET[(ALPHABET.index(ciphertext_cleaned[i])-ALPHABET.index(deciphering_key[i%len(deciphering_key)])%26)]
+    index_key = 0
+    for i in range(len(raw_ciphertext_or_cleaned)):
+        if raw_ciphertext_or_cleaned[i] not in ALPHABET:
+            plaintext += raw_ciphertext_or_cleaned[i]
+        else:
+            plaintext += ALPHABET[(ALPHABET.index(raw_ciphertext_or_cleaned[i])-ALPHABET.index(deciphering_key[index_key%len(deciphering_key)])%26)]
+            index_key += 1
     return plaintext
 
-print(deciphering_vigenere(ciphertext_cleaned, deciphering_key))
+
+ic_differences = [key_length_finder(ciphertext_parser(ciphertext_cleaned, i)) for i in range(1,48)]
+key_length = ic_differences.index(min(ic_differences))+1
+print("The possible key length is:", key_length)
+
+deciphering_key = frequency_attack(parser_in_block(ciphertext_cleaned,key_length),french_alphabet_letter_freq)
+print(deciphering_key)
+
+print("DECIPHERED TEXT:\n")
+
+print(deciphering_vigenere(ciphertext, deciphering_key))

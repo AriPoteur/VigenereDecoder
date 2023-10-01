@@ -4,6 +4,8 @@ from time import time
 IC_MONO_FR = 0.0746
 IC_POLY = 0.0380
 
+ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
+
 french_alphabet_letter_freq = {
     "a" : round(0.76/100,4),
     "b" : round(0.90/100,4),
@@ -115,124 +117,29 @@ def parser_in_block(ciphertext_cleaned, key_length):
 
     
 def frequency_attack(ciphertext_blocks, lang_alphabet_freq):
-    nth_character_of_each_block = []
+    nth_characters_of_each_block = []
     tmp_string = ""
     for i in range(key_length):
         for l in range(len(ciphertext_blocks)-1):
             tmp_string += ciphertext_blocks[l][i]
-        nth_character_of_each_block.append(tmp_string)
+        nth_characters_of_each_block.append(tmp_string)
         tmp_string = ""
-    for i in nth_character_of_each_block:
-        print(ciphertext_freq_and_cleaning(i), sum(ciphertext_freq_and_cleaning(i).values()))
-        print(dict(sorted(lang_alphabet_freq.items(), key=lambda x : x[1], reverse=True)))
-        print("\n")
-
-
-
-frequency_attack(parser_in_block(ciphertext_cleaned,key_length),french_alphabet_letter_freq)
-
-
-
-
-
-
-# print(coincidence_index(ciphertext))
-
-
-
-# def rearrange_ciphertext(ciphertext):
-#     coincidence_texts = []
-#     for i in range(120):
-#         coincidence_texts.append([ciphertext[:-i]])
-#     return coincidence_texts
-
-# coincidence_texts_array = rearrange_ciphertext(ciphertext)
-
-# for i in coincidence_texts_array:
-#     i[0] = i[0].replace(" ","")
-#     i[0] = i[0].replace("'","")
-#     i[0] = i[0].replace(".","")
-#     i[0] = i[0].replace(",","")
-#     i[0] = i[0].replace('"',"")
-#     i[0] = i[0].replace('\n',"")
-#     i[0] = i[0].replace(':',"")
-
-# cleaned_ciphertexts_array = []
-# [cleaned_ciphertexts_array.append(x) for x in coincidence_texts_array if x not in cleaned_ciphertexts_array and x != ['']]
-
-
-# def key_length_determination(text_array):
-#     reference_text = text_array[0][0]
-#     hit_same_letter = []
-#     strt_index = 1
-#     for i in range(1,len(text_array)):
-#         counter = 0
-#         #print("CURRENT STEP #",i)
-#         for j in range(len(text_array[i][0])):
-#             if reference_text[strt_index+j] == text_array[i][0][j]:
-#                 counter += 1
-#                 #print(reference_text[1+j],"=",text_array[i][0][j])
-#         hit_same_letter.append(counter)
-#         strt_index += 1
-#     return hit_same_letter
-
-# coincidences = key_length_determination(cleaned_ciphertexts_array)
-
-# maxes_indexes = []
-# copy_coincidences = coincidences
-
-# treshold_freq = 5
-
-# for i in range(treshold_freq):
-#     # print("current max coicidences index:",copy_coincidences.index(max(copy_coincidences)))
-#     curr_max = max(copy_coincidences)
-#     curr_max_index = copy_coincidences.index(max(copy_coincidences))
-#     # print("current max:",max(copy_coincidences))
-#     maxes_indexes.append([curr_max_index,curr_max])
-#     copy_coincidences[curr_max_index] = -1
-#     # print(maxes_indexes)
-# maxes_indexes.sort()
-# average = 0
-# for i in range(treshold_freq - 1):
-#     average += maxes_indexes[i+1][0] - maxes_indexes[i][0]
-# key_length = average/treshold_freq
-
-# #print("KEY LENGTH ==>", key_length)
-
-
-
-
-
-# def frequency_of_letters(ciphertext_cleaned):
-#     return Counter(ciphertext_cleaned)
-
-# # print("CIPHERTEXT LETTER FREQUENCY ==>",frequency_of_letters(cleaned_ciphertexts_array[0][0]))
-
-
-# def most_probable_letter(ref_dict, dict_to_analyze):
-#     sum_end_values = []
-#     for i in ref_dict:
-#         pass
-
-# def cracking_key(ciphertext_cleaned, dictionary, key_length):
-#     tmp_cipher_alphabet = []
-#     tmp_list = []
-#     for k in range(int(key_length)):
-#         for i in range(k,len(ciphertext_cleaned), int(key_length)):
-#             tmp_list.append(ciphertext_cleaned[i])
-#         #print("".join(tmp_cipher_alphabet), len(tmp_cipher_alphabet))
-#         #print(len(ciphertext_cleaned))
-#         tmp_cipher_alphabet.append(tmp_list)
-#         tmp_list = []
-#     for j in tmp_cipher_alphabet:
-#         freq_of_letters_in_ciphertext_parts = frequency_of_letters(j)
-#         # a = {k: round(v / sum(freq_of_letters_in_ciphertext_parts.values()), 3) for k,v in freq_of_letters_in_ciphertext_parts.items()}
-#         print(dict(sorted(freq_of_letters_in_ciphertext_parts.items(), key=lambda x: x[1], reverse=True)))
-
+    decipher_key = ""
+    for i in nth_characters_of_each_block:
+        max_of_ith_character_of_each_block_freq = max(ciphertext_freq_and_cleaning(i), key=ciphertext_freq_and_cleaning(i).get)
+        # print("Letter that occurs the most:",max_of_ith_character_of_each_block_freq)
+        decipher_key += ALPHABET[(ALPHABET.index(max_of_ith_character_of_each_block_freq)-ALPHABET.index(max(lang_alphabet_freq, key=lang_alphabet_freq.get)))%26]
+    print("THE KEY:")
+    return decipher_key
+        # print(dict(sorted(lang_alphabet_freq.items(), key=lambda x : x[1], reverse=True)))
     
+deciphering_key = frequency_attack(parser_in_block(ciphertext_cleaned,key_length),french_alphabet_letter_freq)
 
 
-            
-    
-# cracking_key(cleaned_ciphertexts_array[0][0], french_alphabet_freq, key_length)
+def deciphering_vigenere(ciphertext_cleaned, deciphering_key):
+    plaintext = ""
+    for i in range(len(ciphertext_cleaned)):
+        plaintext += ALPHABET[(ALPHABET.index(ciphertext_cleaned[i])-ALPHABET.index(deciphering_key[i%len(deciphering_key)])%26)]
+    return plaintext
 
+print(deciphering_vigenere(ciphertext_cleaned, deciphering_key))
